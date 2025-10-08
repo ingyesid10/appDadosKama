@@ -1,281 +1,652 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8">
-  <title>Juego de Dados</title>
-  <style>
-    body {
-      font-family: "Comic Sans MS", cursive, sans-serif;
-      background: #00aaff;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-    }
-    h1 {
-      margin: 20px;
-      color: #fff;
-      text-shadow: 2px 2px #0077aa;
-    }
-    .dice {
-      width: 150px;
-      margin: 20px;
-      border-radius: 25px;
-      box-shadow: 4px 4px 0px #333, -4px -4px 0px #fff;
-      background: #ffefc0;
-      padding: 5px;
-    }
-    button {
-      background: linear-gradient(135deg, #ff9900, #ff6600);
-      color: white;
-      font-size: 22px;
-      padding: 15px 40px;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: 0.2s;
-      box-shadow: 3px 3px 0px #333;
-    }
-    button:hover {
-      background: linear-gradient(135deg, #ffbb33, #ff7733);
-      transform: scale(1.05);
-    }
-
-    /* Modal general */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 10;
-      left: 0; top: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      justify-content: center;
-      align-items: center;
-    }
-    .modal-content {
-      background: #fff7d6;
-      border-radius: 25px;
-      padding: 25px;
-      width: 85%;
-      max-width: 420px;
-      text-align: center;
-      box-shadow: 0px 8px 0px #cc8800, 0px 0px 15px rgba(255, 200, 100, 0.7);
-      animation: bounceIn 0.5s ease;
-    }
-    @keyframes bounceIn {
-      from { transform: scale(0.7); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-    .modal-content h2 {
-      margin-bottom: 10px;
-      color: #ff6600;
-      text-shadow: 1px 1px #fff;
-    }
-    .close {
-      float: right;
-      font-size: 22px;
-      cursor: pointer;
-      color: #ff3300;
-    }
-    .placeholder-img {
-      width: 100%;
-      height: 150px;
-      border: 3px dashed #ff9900;
-      margin-top: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #ff6600;
-      font-size: 16px;
-      border-radius: 15px;
-      background: #fff3cc;
-    }
-
-    /* Estilo de descripción cartoon */
-    .descripcion {
-      margin-top: 15px;
-      text-align: left;
-      background: #fff3cc;
-      border: 2px solid #ff9900;
-      border-radius: 15px;
-      padding: 10px 15px;
-      box-shadow: inset 2px 2px 5px #ffcc66;
-    }
-    .descripcion h3 {
-      margin: 8px 0;
-      color: #ff6600;
-      text-shadow: 1px 1px #fff;
-    }
-    .descripcion ul {
-      margin: 0;
-      padding-left: 20px;
-      list-style-type: "⭐ ";
-      color: #333;
-    }
-    .descripcion p {
-      margin-top: 8px;
-      font-style: italic;
-      color: #555;
-    }
-
-    /* Segunda modal (solo imagen + cronómetro) */
-    .modal-image {
-      display: none;
-      position: fixed;
-      z-index: 20;
-      left: 0; top: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.7);
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      animation: zoomIn 0.7s ease forwards;
-    }
-    @keyframes zoomIn {
-      from { transform: scale(0.5); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-    .modal-image img {
-      max-width: 90%;
-      max-height: 300px;
-      border-radius: 30px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 20px #ff66cc, 0 0 40px #ff99dd;
-      animation: glow 1.5s infinite alternate;
-    }
-    @keyframes glow {
-      from { box-shadow: 0 0 10px #ff66cc, 0 0 20px #ff99dd; }
-      to { box-shadow: 0 0 25px #ff66cc, 0 0 50px #ff99dd; }
-    }
-    .cronometro {
-      font-size: 32px;
-      font-weight: bold;
-      color: #ffcc00;
-      background: #222;
-      padding: 10px 25px;
-      border-radius: 20px;
-      box-shadow: 3px 3px 0px #000;
-    }
-  </style>
-</head>
-<body>
-  <h1>🎲 Juego de Dados 🎲</h1>
-  <div>
-    <img id="dado1" class="dice" src="01.png">
-    <img id="dado2" class="dice" src="02.png">
-  </div>
-  <button onclick="lanzar()">Lanzar</button>
-
-  <!-- Modal de resultado -->
-  <div id="resultadoModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="cerrarModal()">&times;</span>
-      <h2>Resultado</h2>
-      <div id="mensaje"></div>
-      <div class="placeholder-img">[ Aquí irá la imagen según nivel/posición ]</div>
-
-      <!-- Descripción mejorada -->
-      <div class="descripcion" id="descripcion">
-        <h3>Ventajas</h3>
-        <ul id="ventajas"></ul>
-        <h3>Desventajas</h3>
-        <ul id="desventajas"></ul>
-        <p id="datoCurioso"></p>
-      </div>
-
-      <button onclick="empezarJuego()">Empezar</button>
-    </div>
-  </div>
-
-  <!-- Modal de imagen + cronómetro -->
-  <div id="imagenModal" class="modal-image">
-    <img id="imagenJuego" src="placeholder.png" alt="Imagen dinámica">
-    <div class="cronometro" id="cronometro">1:00</div>
-  </div>
-
-  <script>
-    let interval;
-    let cronometroInterval;
-
-    function lanzar() {
-      const dado1 = document.getElementById("dado1");
-      const dado2 = document.getElementById("dado2");
-      const caras = ["01.png","02.png","03.png","04.png","05.png","06.png"];
-      clearInterval(interval);
-
-      interval = setInterval(() => {
-        dado1.src = caras[Math.floor(Math.random() * 6)];
-        dado2.src = caras[Math.floor(Math.random() * 6)];
-      }, 100);
-
-      setTimeout(() => {
-        clearInterval(interval);
-        const valor1 = Math.floor(Math.random() * 6) + 1;
-        const valor2 = Math.floor(Math.random() * 6) + 1;
-        dado1.src = `0${valor1}.png`;
-        dado2.src = `0${valor2}.png`;
-
-        mostrarResultado(valor1, valor2);
-      }, 4000);
-    }
-
-    function mostrarResultado(nivel, condicion) {
-      let mensaje = "";
-
-      if (nivel === 6) {
-        mensaje += "🎉 Nivel: Comodín (puedes escoger el nivel)<br>";
-      } else {
-        mensaje += "📊 Nivel: " + nivel + "<br>";
-      }
-
-      if (condicion === 6) {
-        mensaje += "✨ Condición: Comodín (puedes escoger la condición)<br>";
-      } else {
-        mensaje += "📌 Condición: " + condicion + "<br>";
-      }
-
-      mensaje += "<br>➡️ Relación de Nivel y Condición lista.<br>";
-
-      document.getElementById("mensaje").innerHTML = mensaje;
-
-      // ejemplo cartoon de ventajas/desventajas/dato curioso
-      document.getElementById("ventajas").innerHTML = "<li>Muy divertido</li><li>Rápido de jugar</li>";
-      document.getElementById("desventajas").innerHTML = "<li>Depende de la suerte</li>";
-      document.getElementById("datoCurioso").innerText = "Dato curioso: los dados existen desde hace más de 5000 años 🎲✨";
-
-      document.getElementById("resultadoModal").style.display = "flex";
-    }
-
-    function cerrarModal() {
-      document.getElementById("resultadoModal").style.display = "none";
-    }
-
-    function empezarJuego() {
-      cerrarModal();
-
-      const imagenModal = document.getElementById("imagenModal");
-      const cronometro = document.getElementById("cronometro");
-
-      imagenModal.style.display = "flex";
-
-      let tiempo = 60;
-      cronometro.innerText = "1:00";
-
-      clearInterval(cronometroInterval);
-      cronometroInterval = setInterval(() => {
-        tiempo--;
-        let min = Math.floor(tiempo / 60);
-        let sec = tiempo % 60;
-        cronometro.innerText = `${min}:${sec < 10 ? "0" + sec : sec}`;
-
-        if (tiempo <= 0) {
-          clearInterval(cronometroInterval);
-          cronometro.innerText = "¿Se divirtieron? 🎉\nAhora volvamos a tirar los dados";
-          setTimeout(() => {
-            imagenModal.style.display = "none";
-          }, 4000);
+    <meta charset="UTF-8">
+    <title>Juego de Dados</title>
+    <style>
+        body {
+            font-family: "Comic Sans MS", cursive, sans-serif;
+            background-image: url(images/bg/bg-02.jpeg);
+            background-size: cover;
+            text-align: center;
+            margin: 0;
+            padding: 0;
         }
-      }, 1000);
-    }
-  </script>
+
+        h1 {
+            margin: 20px;
+            color: #fff;
+            text-shadow: 2px 2px #0077aa;
+            font-size: 66px;
+            position: relative;
+            z-index: 2;
+        }
+
+        #mensaje {
+            font-size: 32px;
+        }
+
+        /* Overlay */
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1;
+            display: none;
+        }
+
+        .dice-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 60vh;
+            gap: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .dice {
+            width: 300px;
+            border-radius: 25px;
+            box-shadow: 4px 4px 0px #333, -4px -4px 0px #fff;
+            background: #ffefc0;
+            padding: 5px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #ff9900, #ff6600);
+            color: white;
+            font-size: 50px;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 3px 3px 0px #333;
+            margin-top: 20px;
+            width: 65%;
+            position: relative;
+            z-index: 2;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #ffbb33, #ff7733);
+            transform: scale(1.05);
+        }
+
+        /* Modal general */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .placeholder-img img {
+            width: -webkit-fill-available;
+            border-radius: 15px;
+        }
+
+        .modal-content {
+            background: #fff7d6;
+            border-radius: 25px;
+            padding: 25px;
+            width: 85%;
+            max-width: 70%;
+            text-align: center;
+            box-shadow: 0px 8px 0px #cc8800, 0px 0px 15px rgba(255, 200, 100, 0.7);
+            animation: bounceIn 0.5s ease;
+        }
+
+        @keyframes bounceIn {
+            from {
+                transform: scale(0.7);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-content h2 {
+            margin-bottom: 10px;
+            color: #ff6600;
+            text-shadow: 1px 1px #fff;
+        }
+
+        .descripcion {
+            margin-top: 15px;
+            text-align: left;
+            background: #fff3cc;
+            border: 2px solid #ff9900;
+            border-radius: 15px;
+            padding: 10px 15px;
+            box-shadow: inset 2px 2px 5px #ffcc66;
+            font-size: 22px;
+        }
+
+        .descripcion h3 {
+            margin: 8px 0;
+            color: #ff6600;
+            text-shadow: 1px 1px #fff;
+        }
+
+        .descripcion ul {
+            margin: 0;
+            padding-left: 20px;
+            list-style-type: "⭐ ";
+            color: #333;
+        }
+
+        .como-jugar {
+            font-size: 36px;
+            text-decoration: underline;
+            cursor: pointer;
+            color: #bf2727;
+            ;
+        }
+
+        .modal-image {
+            display: none;
+            position: fixed;
+            z-index: 20;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            animation: zoomIn 0.7s ease forwards;
+        }
+
+        @keyframes zoomIn {
+            from {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .cronometro {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffcc00;
+            background: #222;
+            padding: 10px 25px;
+            border-radius: 20px;
+            box-shadow: 3px 3px 0px #000;
+        }
+
+        #tiempoModal .modal-content {
+            max-width: 400px;
+        }
+
+        .time-inputs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .time-inputs input {
+            width: 80px;
+            font-size: 20px;
+            text-align: center;
+            border-radius: 10px;
+            padding: 5px;
+            border: 2px solid #ff9900;
+        }
+
+        .opciones-comodin {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .opciones-comodin button {
+            background: linear-gradient(135deg, #ffcc33, #ff9933);
+            color: #fff;
+            font-size: 32px;
+            border: none;
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            cursor: pointer;
+            box-shadow: 3px 3px 0px #cc7700;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .opciones-comodin button:hover {
+            transform: scale(1.1);
+            box-shadow: 4px 4px 0px #aa5500;
+        }
+
+        .opciones-comodin button.seleccionado {
+            background: linear-gradient(135deg, #ff6600, #ff3300);
+            box-shadow: 4px 4px 0px #990000;
+            transform: scale(1.15);
+        }
+
+        #confirmarComodin {
+            background: linear-gradient(135deg, #33cc66, #009944);
+            color: white;
+            font-size: 28px;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 3px 3px 0px #006633;
+            transition: transform 0.2s;
+        }
+
+        #confirmarComodin:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: gray;
+            box-shadow: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="overlay"></div>
+    <h1>🎲✨ Explora, diviértete y sobrepásenla bien rico..</h1>
+
+    <div class="dice-container">
+        <img id="dado1" class="dice" src="images/dados/01.png">
+        <img id="dado2" class="dice" src="images/dados/02.png">
+    </div>
+    <button onclick="lanzar()">Lanzar</button>
+    <br>
+    <p onclick="abrirComoJugar()" class="como-jugar">📖 Cómo Jugar</p>
+
+    <!-- Modal Cómo Jugar -->
+    <div id="comoJugarModal" class="modal">
+        <div class="modal-content">
+            <h2>📖 Cómo jugar</h2>
+            <div class="descripcion">
+                <ul>
+                    <li>🎲 Lanza los dados y deja que el destino decida.</li>
+                    <li>Si sale <b>comodín (6)</b>, podrás elegir el número manualmente.</li>
+                    <li>El primer dado indica el <b>nivel</b> y el segundo la <b>posición</b>.</li>
+                    <li>Si ambos dados salen <b>comodín</b>, podras escoger donde acabar.</li>
+                    <li>Puedes <b>personalizar el tiempo</b> o usar el valor por defecto.</li>
+                    <li>Cuando falten 5 segundos, escucharás una alerta 🔔 para prepararte.</li>
+                </ul>
+                <p style="margin-top:15px; font-weight:bold; text-align:center;">💖 ¡Diviértanse y disfruten cada
+                    lanzamiento! 💖</p>
+
+                    <p style="margin-top:15px; font-weight:bold; text-align:center;">Seguiremos mejorando las imágenes, nuevas posiciones; ¡en cada actualización será más interactivo y emocionante!</p>
+            </div>
+            <button onclick="cerrarComoJugar()">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- Modal de resultado -->
+    <div id="resultadoModal" class="modal">
+        <div class="modal-content">
+            <h2 id="tituloDescripcion">Resultado</h2>
+            <div id="mensaje"></div>
+            <div class="placeholder-img">
+                <img id="imagenResultado" src="placeholder.png">
+            </div>
+
+            <p id="descripcionTexto" style="margin:15px; font-style:italic;"></p>
+
+            <div class="descripcion">
+                <h3>Ventajas</h3>
+                <ul id="ventajas"></ul>
+                <h3>Desventajas</h3>
+                <ul id="desventajas"></ul>
+                <h3>Dato curioso</h3>
+                <p id="datoCurioso"></p>
+            </div>
+
+            <button onclick="abrirConfigTiempo()">Empezar</button>
+            <button onclick="volverALanzar()" style="font-size: 28px;">🎲 Volver a lanzar</button>
+        </div>
+    </div>
+
+    <!-- Modal imagen + cronómetro -->
+    <div id="imagenModal" class="modal-image">
+        <img id="imagenJuego" src="placeholder.png">
+        <div class="cronometro" id="cronometro">1:00</div>
+    </div>
+
+    <!-- Modal Comodín -->
+    <div id="modalComodin" class="modal">
+        <div class="modal-content" style="max-width:650px; position:relative;">
+            <span onclick="cerrarComodin()"
+                style="position:absolute;top:10px;right:20px;font-size:36px;color:#ff6600;cursor:pointer;">✖</span>
+            <h2 id="tituloComodin">🎁 ¡Comodín!</h2>
+            <p id="mensajeComodin" style="font-size:22px;">Selecciona lo que desees modificar:</p>
+
+            <div id="bloqueNivel" style="margin:20px 0; display:none;">
+                <h3 style="color:#ff6600;">Nivel</h3>
+                <div class="opciones-comodin" id="nivelesComodin"></div>
+            </div>
+
+            <div id="bloquePosicion" style="margin:20px 0; display:none;">
+                <h3 style="color:#ff6600;">Posición</h3>
+                <div class="opciones-comodin" id="posicionesComodin"></div>
+            </div>
+
+            <div id="bloqueFinal" style="margin:20px 0; display:none;">
+                <h3 style="color:#ff6600;">¿Dónde terminarán? 💋</h3>
+                <div class="opciones-comodin" id="finalesComodin"></div>
+            </div>
+
+            <button id="confirmarComodin" onclick="confirmarComodin()" disabled>✅ Confirmar selección</button>
+        </div>
+    </div>
+
+
+
+
+    <!-- Modal configuración tiempo -->
+    <div id="tiempoModal" class="modal">
+        <div class="modal-content">
+            <h2>⏱ Configuración del tiempo</h2>
+            <p>¿Quieres usar el tiempo por defecto (1:00) o personalizarlo?</p>
+            <button onclick="iniciarJuegoConTiempo(60)">Por defecto (1:00)</button>
+            <button onclick="mostrarPersonalizacion()">Personalizar</button>
+            <div id="personalizar" style="display:none;">
+                <div class="time-inputs">
+                    <input type="number" id="minutos" min="0" value="1"> min
+                    <input type="number" id="segundos" min="0" max="59" value="0"> seg
+                </div>
+                <button onclick="aplicarPersonalizacion()">Iniciar</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="beepAudio" src="beep.mp3"></audio>
+
+    <script>
+        let interval;
+        let cronometroInterval;
+        let combinaciones = {};
+        let valor1, valor2;
+        let tiempoElegido = 60;
+
+        fetch("json/combinaciones.json")
+            .then(res => res.json())
+            .then(data => { combinaciones = data; });
+
+        function lanzar() {
+            const dado1 = document.getElementById("dado1");
+            const dado2 = document.getElementById("dado2");
+            const caras = ["images/dados/01.png", "images/dados/02.png", "images/dados/03.png", "images/dados/04.png", "images/dados/05.png", "images/dados/06.png", "images/dados/07.png"];
+            clearInterval(interval);
+
+            document.getElementById("overlay").style.display = "block";
+
+            interval = setInterval(() => {
+                dado1.src = caras[Math.floor(Math.random() * 7)];
+                dado2.src = caras[Math.floor(Math.random() * 7)];
+            }, 100);
+
+            setTimeout(() => {
+                clearInterval(interval);
+                valor1 = Math.floor(Math.random() * 7) + 1;
+                valor2 = Math.floor(Math.random() * 7) + 1;
+                dado1.src = `images/dados/0${valor1}.png`;
+                dado2.src = `images/dados/0${valor2}.png`;
+                document.getElementById("overlay").style.display = "none";
+                mostrarResultado(valor1, valor2);
+            }, 3000);
+        }
+        function mostrarResultado(nivel, condicion) {
+            // 🧠 Lógica del comodín
+            if (nivel === 7 && condicion === 7) {
+                // ambos son comodines → elegir todo
+                document.getElementById("resultadoModal").style.display = "none";
+                abrirModalComodin("ambos", nivel, condicion);
+                return;
+            } else if (nivel === 7) {
+                // comodín izquierdo → elegir solo nivel
+                document.getElementById("resultadoModal").style.display = "none";
+                abrirModalComodin("nivel", nivel, condicion);
+                return;
+            } else if (condicion === 7) {
+                // comodín derecho → elegir solo posición
+                document.getElementById("resultadoModal").style.display = "none";
+                abrirModalComodin("posicion", nivel, condicion);
+                return;
+            }
+
+            // 🔹 comportamiento normal si no hay comodines
+            const clave = `${nivel}-${condicion}`;
+            const data = combinaciones[clave];
+
+            let mensaje = `📊 Nivel: ${nivel}<br>📌 Posición: ${condicion}<br>`;
+            if (data) {
+                document.getElementById("tituloDescripcion").innerText = data.nombre;
+                document.getElementById("descripcionTexto").innerText = data.descripcion || "";
+                document.getElementById("ventajas").innerHTML = (data.ventajas || []).map(v => `<li>${v}</li>`).join("");
+                document.getElementById("desventajas").innerHTML = (data.desventajas || []).map(d => `<li>${d}</li>`).join("");
+                document.getElementById("datoCurioso").innerText = data.dato_curioso || "";
+                document.getElementById("imagenResultado").src = data.imagen;
+                document.getElementById("imagenJuego").src = data.imagen;
+            }
+
+            document.getElementById("mensaje").innerHTML = mensaje;
+            document.getElementById("resultadoModal").style.display = "flex";
+        }
+
+
+
+        function abrirConfigTiempo() {
+            document.getElementById("resultadoModal").style.display = "none";
+            document.getElementById("tiempoModal").style.display = "flex";
+        }
+
+        function volverALanzar() {
+            document.getElementById("resultadoModal").style.display = "none";
+            lanzar();
+        }
+
+        function mostrarPersonalizacion() {
+            document.getElementById("personalizar").style.display = "block";
+        }
+
+        function aplicarPersonalizacion() {
+            const min = parseInt(document.getElementById("minutos").value) || 0;
+            const sec = parseInt(document.getElementById("segundos").value) || 0;
+            tiempoElegido = (min * 60) + sec;
+            iniciarJuegoConTiempo(tiempoElegido);
+        }
+
+        function iniciarJuegoConTiempo(tiempo) {
+            document.getElementById("tiempoModal").style.display = "none";
+            const imagenModal = document.getElementById("imagenModal");
+            const cronometro = document.getElementById("cronometro");
+            imagenModal.style.display = "flex";
+
+            let tiempoRestante = tiempo;
+            cronometro.innerText = formatTime(tiempoRestante);
+
+            clearInterval(cronometroInterval);
+            cronometroInterval = setInterval(() => {
+                tiempoRestante--;
+                cronometro.innerText = formatTime(tiempoRestante);
+
+                if (tiempoRestante <= 5 && tiempoRestante > 0) {
+                    document.getElementById("beepAudio").play();
+                }
+
+                if (tiempoRestante <= 0) {
+                    clearInterval(cronometroInterval);
+                    cronometro.innerText = "¿Se divirtieron? 🎉\n¡Hora de volver a tirar los dados!";
+                    setTimeout(() => { imagenModal.style.display = "none"; }, 4000);
+                }
+            }, 1000);
+        }
+
+        function formatTime(sec) {
+            let min = Math.floor(sec / 60);
+            let s = sec % 60;
+            return `${min}:${s < 10 ? "0" + s : s}`;
+        }
+
+        function abrirComoJugar() {
+            document.getElementById("comoJugarModal").style.display = "flex";
+        }
+
+        function cerrarComoJugar() {
+            document.getElementById("comoJugarModal").style.display = "none";
+        }
+        let nivelSeleccionado = null;
+        let posicionSeleccionada = null;
+        let finalSeleccionado = null;
+        let comodinModo = ""; // puede ser "nivel", "posicion" o "ambos"
+        let valorDerechoFijo = null;
+        let valorIzquierdoFijo = null;
+
+        function abrirModalComodin(modo, valorIzq, valorDer) {
+            comodinModo = modo;
+            valorDerechoFijo = valorDer;
+            valorIzquierdoFijo = valorIzq;
+
+            nivelSeleccionado = null;
+            posicionSeleccionada = null;
+            finalSeleccionado = null;
+            document.getElementById("confirmarComodin").disabled = true;
+
+            // Limpiar botones previos
+            ["nivelesComodin", "posicionesComodin", "finalesComodin"].forEach(id => {
+                document.getElementById(id).innerHTML = "";
+            });
+
+            // Ocultar todos los bloques
+            document.getElementById("bloqueNivel").style.display = "none";
+            document.getElementById("bloquePosicion").style.display = "none";
+            document.getElementById("bloqueFinal").style.display = "none";
+
+            // Crear botones dinámicos
+            if (modo === "nivel" || modo === "ambos") {
+                document.getElementById("bloqueNivel").style.display = "block";
+                for (let i = 1; i <= 6; i++) {
+                    const btn = document.createElement("button");
+                    btn.textContent = i;
+                    btn.onclick = () => seleccionarNivel(i, btn);
+                    document.getElementById("nivelesComodin").appendChild(btn);
+                }
+            }
+
+            if (modo === "posicion" || modo === "ambos") {
+                document.getElementById("bloquePosicion").style.display = "block";
+                for (let i = 1; i <= 6; i++) {
+                    const btn = document.createElement("button");
+                    btn.textContent = i;
+                    btn.onclick = () => seleccionarPosicion(i, btn);
+                    document.getElementById("posicionesComodin").appendChild(btn);
+                }
+            }
+
+            if (modo === "ambos") {
+                document.getElementById("bloqueFinal").style.display = "block";
+                const opciones = ["Cama 🛏️", "Sofá 🛋️", "Suelo 💃", "Ducha 🚿", "Mesa 🍷", "Sorpresa 🎁"];
+                opciones.forEach((txt, i) => {
+                    const btn = document.createElement("button");
+                    btn.textContent = i + 1;
+                    btn.title = txt;
+                    btn.onclick = () => seleccionarFinal(txt, btn);
+                    document.getElementById("finalesComodin").appendChild(btn);
+                });
+            }
+
+            // Texto dinámico
+            const titulo = document.getElementById("tituloComodin");
+            const mensaje = document.getElementById("mensajeComodin");
+
+            if (modo === "nivel") {
+                titulo.innerText = "🎲 Comodín de Nivel";
+                mensaje.innerText = "Selecciona el nivel manualmente. La posición se mantiene.";
+            } else if (modo === "posicion") {
+                titulo.innerText = "🎲 Comodín de Posición";
+                mensaje.innerText = "Selecciona la posición manualmente. El nivel se mantiene.";
+            } else {
+                titulo.innerText = "🎁 ¡Doble Comodín!";
+                mensaje.innerText = "Puedes elegir el nivel, la posición y también dónde terminarán 😏.";
+            }
+
+            document.getElementById("modalComodin").style.display = "flex";
+        }
+
+        function seleccionarNivel(valor, btn) {
+            document.querySelectorAll("#nivelesComodin button").forEach(b => b.classList.remove("seleccionado"));
+            btn.classList.add("seleccionado");
+            nivelSeleccionado = valor;
+            habilitarConfirmar();
+        }
+
+        function seleccionarPosicion(valor, btn) {
+            document.querySelectorAll("#posicionesComodin button").forEach(b => b.classList.remove("seleccionado"));
+            btn.classList.add("seleccionado");
+            posicionSeleccionada = valor;
+            habilitarConfirmar();
+        }
+
+        function seleccionarFinal(valor, btn) {
+            document.querySelectorAll("#finalesComodin button").forEach(b => b.classList.remove("seleccionado"));
+            btn.classList.add("seleccionado");
+            finalSeleccionado = valor;
+            habilitarConfirmar();
+        }
+
+        function habilitarConfirmar() {
+            if (
+                (comodinModo === "nivel" && nivelSeleccionado) ||
+                (comodinModo === "posicion" && posicionSeleccionada) ||
+                (comodinModo === "ambos" && nivelSeleccionado && posicionSeleccionada && finalSeleccionado)
+            ) {
+                document.getElementById("confirmarComodin").disabled = false;
+            }
+        }
+
+        function confirmarComodin() {
+            document.getElementById("modalComodin").style.display = "none";
+
+            let nivelFinal = valorIzquierdoFijo;
+            let posicionFinal = valorDerechoFijo;
+
+            if (comodinModo === "nivel") nivelFinal = nivelSeleccionado;
+            if (comodinModo === "posicion") posicionFinal = posicionSeleccionada;
+            if (comodinModo === "ambos") {
+                nivelFinal = nivelSeleccionado;
+                posicionFinal = posicionSeleccionada;
+                alert(`🔥 Terminarán en: ${finalSeleccionado}`);
+            }
+
+            mostrarResultado(nivelFinal, posicionFinal);
+        }
+
+        function cerrarComodin() {
+            document.getElementById("modalComodin").style.display = "none";
+        }
+
+
+    </script>
 </body>
+
 </html>
