@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Juego de Dados</title>
+  <style>
+    body {
+      font-family: "Comic Sans MS", cursive, sans-serif;
+      background: #00aaff;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      margin: 20px;
+      color: #fff;
+      text-shadow: 2px 2px #0077aa;
+    }
+    .dice {
+      width: 150px;
+      margin: 20px;
+      border-radius: 25px;
+      box-shadow: 4px 4px 0px #333, -4px -4px 0px #fff;
+      background: #ffefc0;
+      padding: 5px;
+    }
+    button {
+      background: linear-gradient(135deg, #ff9900, #ff6600);
+      color: white;
+      font-size: 22px;
+      padding: 15px 40px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 3px 3px 0px #333;
+    }
+    button:hover {
+      background: linear-gradient(135deg, #ffbb33, #ff7733);
+      transform: scale(1.05);
+    }
+
+    /* Modal general */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 10;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: #fff7d6;
+      border-radius: 25px;
+      padding: 25px;
+      width: 85%;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: 0px 8px 0px #cc8800, 0px 0px 15px rgba(255, 200, 100, 0.7);
+      animation: bounceIn 0.5s ease;
+    }
+    @keyframes bounceIn {
+      from { transform: scale(0.7); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .modal-content h2 {
+      margin-bottom: 10px;
+      color: #ff6600;
+      text-shadow: 1px 1px #fff;
+    }
+    .close {
+      float: right;
+      font-size: 22px;
+      cursor: pointer;
+      color: #ff3300;
+    }
+    .placeholder-img {
+      width: 100%;
+      height: 150px;
+      border: 3px dashed #ff9900;
+      margin-top: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ff6600;
+      font-size: 16px;
+      border-radius: 15px;
+      background: #fff3cc;
+    }
+
+    /* Estilo de descripción cartoon */
+    .descripcion {
+      margin-top: 15px;
+      text-align: left;
+      background: #fff3cc;
+      border: 2px solid #ff9900;
+      border-radius: 15px;
+      padding: 10px 15px;
+      box-shadow: inset 2px 2px 5px #ffcc66;
+    }
+    .descripcion h3 {
+      margin: 8px 0;
+      color: #ff6600;
+      text-shadow: 1px 1px #fff;
+    }
+    .descripcion ul {
+      margin: 0;
+      padding-left: 20px;
+      list-style-type: "⭐ ";
+      color: #333;
+    }
+    .descripcion p {
+      margin-top: 8px;
+      font-style: italic;
+      color: #555;
+    }
+
+    /* Segunda modal (solo imagen + cronómetro) */
+    .modal-image {
+      display: none;
+      position: fixed;
+      z-index: 20;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      animation: zoomIn 0.7s ease forwards;
+    }
+    @keyframes zoomIn {
+      from { transform: scale(0.5); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .modal-image img {
+      max-width: 90%;
+      max-height: 300px;
+      border-radius: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 20px #ff66cc, 0 0 40px #ff99dd;
+      animation: glow 1.5s infinite alternate;
+    }
+    @keyframes glow {
+      from { box-shadow: 0 0 10px #ff66cc, 0 0 20px #ff99dd; }
+      to { box-shadow: 0 0 25px #ff66cc, 0 0 50px #ff99dd; }
+    }
+    .cronometro {
+      font-size: 32px;
+      font-weight: bold;
+      color: #ffcc00;
+      background: #222;
+      padding: 10px 25px;
+      border-radius: 20px;
+      box-shadow: 3px 3px 0px #000;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎲 Juego de Dados 🎲</h1>
+  <div>
+    <img id="dado1" class="dice" src="01.png">
+    <img id="dado2" class="dice" src="02.png">
+  </div>
+  <button onclick="lanzar()">Lanzar</button>
+
+  <!-- Modal de resultado -->
+  <div id="resultadoModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="cerrarModal()">&times;</span>
+      <h2>Resultado</h2>
+      <div id="mensaje"></div>
+      <div class="placeholder-img">[ Aquí irá la imagen según nivel/posición ]</div>
+
+      <!-- Descripción mejorada -->
+      <div class="descripcion" id="descripcion">
+        <h3>Ventajas</h3>
+        <ul id="ventajas"></ul>
+        <h3>Desventajas</h3>
+        <ul id="desventajas"></ul>
+        <p id="datoCurioso"></p>
+      </div>
+
+      <button onclick="empezarJuego()">Empezar</button>
+    </div>
+  </div>
+
+  <!-- Modal de imagen + cronómetro -->
+  <div id="imagenModal" class="modal-image">
+    <img id="imagenJuego" src="placeholder.png" alt="Imagen dinámica">
+    <div class="cronometro" id="cronometro">1:00</div>
+  </div>
+
+  <script>
+    let interval;
+    let cronometroInterval;
+
+    function lanzar() {
+      const dado1 = document.getElementById("dado1");
+      const dado2 = document.getElementById("dado2");
+      const caras = ["01.png","02.png","03.png","04.png","05.png","06.png"];
+      clearInterval(interval);
+
+      interval = setInterval(() => {
+        dado1.src = caras[Math.floor(Math.random() * 6)];
+        dado2.src = caras[Math.floor(Math.random() * 6)];
+      }, 100);
+
+      setTimeout(() => {
+        clearInterval(interval);
+        const valor1 = Math.floor(Math.random() * 6) + 1;
+        const valor2 = Math.floor(Math.random() * 6) + 1;
+        dado1.src = `0${valor1}.png`;
+        dado2.src = `0${valor2}.png`;
+
+        mostrarResultado(valor1, valor2);
+      }, 4000);
+    }
+
+    function mostrarResultado(nivel, condicion) {
+      let mensaje = "";
+
+      if (nivel === 6) {
+        mensaje += "🎉 Nivel: Comodín (puedes escoger el nivel)<br>";
+      } else {
+        mensaje += "📊 Nivel: " + nivel + "<br>";
+      }
+
+      if (condicion === 6) {
+        mensaje += "✨ Condición: Comodín (puedes escoger la condición)<br>";
+      } else {
+        mensaje += "📌 Condición: " + condicion + "<br>";
+      }
+
+      mensaje += "<br>➡️ Relación de Nivel y Condición lista.<br>";
+
+      document.getElementById("mensaje").innerHTML = mensaje;
+
+      // ejemplo cartoon de ventajas/desventajas/dato curioso
+      document.getElementById("ventajas").innerHTML = "<li>Muy divertido</li><li>Rápido de jugar</li>";
+      document.getElementById("desventajas").innerHTML = "<li>Depende de la suerte</li>";
+      document.getElementById("datoCurioso").innerText = "Dato curioso: los dados existen desde hace más de 5000 años 🎲✨";
+
+      document.getElementById("resultadoModal").style.display = "flex";
+    }
+
+    function cerrarModal() {
+      document.getElementById("resultadoModal").style.display = "none";
+    }
+
+    function empezarJuego() {
+      cerrarModal();
+
+      const imagenModal = document.getElementById("imagenModal");
+      const cronometro = document.getElementById("cronometro");
+
+      imagenModal.style.display = "flex";
+
+      let tiempo = 60;
+      cronometro.innerText = "1:00";
+
+      clearInterval(cronometroInterval);
+      cronometroInterval = setInterval(() => {
+        tiempo--;
+        let min = Math.floor(tiempo / 60);
+        let sec = tiempo % 60;
+        cronometro.innerText = `${min}:${sec < 10 ? "0" + sec : sec}`;
+
+        if (tiempo <= 0) {
+          clearInterval(cronometroInterval);
+          cronometro.innerText = "¿Se divirtieron? 🎉\nAhora volvamos a tirar los dados";
+          setTimeout(() => {
+            imagenModal.style.display = "none";
+          }, 4000);
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
